@@ -183,6 +183,10 @@ DiscardName:
 	text "Discard"
 	done
 
+PressSelectToGoOneStageBelowText:
+	text "[SEL: <RAMTEXT>]"
+	done
+
 UsedText:
 	text "Used <RAMTEXT>."
 	done

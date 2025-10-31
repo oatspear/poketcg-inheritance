@@ -761,7 +761,7 @@ HandleDefendingPokemonAttackSelection:
 	ldh [hCurSelectionItem], a
 
 .start
-	bank1call PrintAndLoadAttacksToDuelTempList
+	bank1call PrintAndLoadAttacksFromActivePokemonToDuelTempList
 	push af
 	ldh a, [hCurSelectionItem]
 	ld hl, .menu_parameters

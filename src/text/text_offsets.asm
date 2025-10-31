@@ -47,6 +47,7 @@ TextOffsets::
 	textpointer IsThisOKText
 	textpointer YesOrNoText
 	textpointer DiscardName
+	textpointer PressSelectToGoOneStageBelowText
 	textpointer UsedText
 	textpointer PokemonsAttackText
 	textpointer ResistanceLessDamageText
