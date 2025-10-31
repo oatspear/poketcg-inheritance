@@ -5940,7 +5940,7 @@ AIDecide_PokemonTrader_PowerGenerator:
 	ld bc, MAGNETON_LV28
 	call LookForCardIDInDeck_GivenCardIDInHand
 	jr c, .find_duplicates
-	; bug, missing jr .no_carry
+	ret
 
 ; a card in deck was found to look for,
 ; check if there are duplicates in hand to trade with.

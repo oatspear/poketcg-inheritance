@@ -12,36 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### AI Pokémon Trader may result in unintended effects
-
-A missing line in AI logic might result in strange behavior when executing the effect of Pokémon Trader for Power Generator deck. Since the last check falls through regardless of result, register a might hold an invalid deck index, which might lead to incorrect (and hilarious) results like Brandon trading a Pikachu with a Grass Energy from the deck. However, since it's deep in a tower of conditionals, reaching here is extremely unlikely.
-
-**Fix:** Edit `AIDecide_PokemonTrader_PowerGenerator` in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm):
-```diff
-AIDecide_PokemonTrader_PowerGenerator:
-	...
-	ld a, RAICHU_LV40
-	call LookForCardIDInDeck_GivenCardIDInHandAndPlayArea
--	jr c, .find_duplicates
-+	jp c, .find_duplicates
-	ld a, PIKACHU_LV14
-	ld b, RAICHU_LV40
-	...
-	call LookForCardIDInDeck_GivenCardIDInHand
-	jr c, .find_duplicates
--	; bug, missing jr .no_carry
-+	jr .no_carry
-
-; a card in deck was found to look for,
-; check if there are duplicates in hand to trade with.
-	...
-.set_carry
-	scf
-+; fallthrough
-+.no_carry
-	ret
-```
-
 ### AI Full Heal has flawed logic for sleep
 
 The AI has the following checks when it is deciding whether to play Full Heal and its Active card is asleep in in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm):
