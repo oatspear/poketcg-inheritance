@@ -132,12 +132,10 @@ InitSaveData:
 	ld [hl], a
 
 ; saved configuration options
-	ld a, $2
 	ld [sTextSpeed], a
 	ld [wTextSpeed], a
 
 ; miscellaneous data
-	xor a
 	ld [sAnimationsDisabled], a
 	ld [sSkipDelayAllowed], a
 	ld [s0a004], a
