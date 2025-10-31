@@ -3814,19 +3814,15 @@ AIDecide_FullHeal:
 ; set carry if any of the following
 ; cards are in the Play Area.
 	ld de, GASTLY_LV8
-	ld b, PLAY_AREA_ARENA
-	call LookForCardIDInPlayArea_Bank8
-	jr c, .set_carry
+	call .CheckPlayerArenaCard
+	ret c
 	ld de, GASTLY_LV17
-	ld b, PLAY_AREA_ARENA
-	call LookForCardIDInPlayArea_Bank8
-	jr c, .set_carry
+	call .CheckPlayerArenaCard
+	ret c
 	ld de, HAUNTER_LV22
-	ld b, PLAY_AREA_ARENA
-	call LookForCardIDInPlayArea_Bank8
-	jr c, .set_carry
-
-; otherwise fallthrough
+	call .CheckPlayerArenaCard
+	ret c
+	; fallthrough
 
 .paralyzed
 ; if Scoop Up is in hand and decided to be played, skip.
@@ -3879,6 +3875,14 @@ AIDecide_FullHeal:
 	jr nz, .set_carry
 ; if not, return no carry.
 	jr .no_carry
+
+; returns carry if player's Arena card
+; is card in register a
+.CheckPlayerArenaCard:
+	call SwapTurn
+	ld b, PLAY_AREA_ARENA
+	call LookForCardIDInPlayArea_Bank8
+	jp SwapTurn
 
 AIPlay_MrFuji:
 	ld a, [wAITrainerCardToPlay]

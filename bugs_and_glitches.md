@@ -12,67 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### AI Full Heal has flawed logic for sleep
-
-The AI has the following checks when it is deciding whether to play Full Heal and its Active card is asleep in in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm):
-
-```
-.asleep
-; set carry if any of the following
-; cards are in the Play Area.
-	ld a, GASTLY_LV8
-	ld b, PLAY_AREA_ARENA
-	call LookForCardIDInPlayArea_Bank8
-	jr c, .set_carry
-	ld a, GASTLY_LV17
-	ld b, PLAY_AREA_ARENA
-	call LookForCardIDInPlayArea_Bank8
-	jr c, .set_carry
-	ld a, HAUNTER_LV22
-	ld b, PLAY_AREA_ARENA
-	call LookForCardIDInPlayArea_Bank8
-	jr c, .set_carry
-```
-
-The intention was to use Full Heal when their Active card is asleep and the player has either GastlyLv8, GastlyLv17 or HaunterLv22 as their Active Pokémon. But actually, `LookForCardIDInPlayArea_Bank8` is checking its own Play Area, and not the player's
-
-**Fix:** Edit `AIDecide_FullHeal` in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm):
-```diff
-AIDecide_FullHeal:
-	...
-.asleep
-; set carry if any of the following
-; cards are in the Play Area.
-	ld a, GASTLY_LV8
--	ld b, PLAY_AREA_ARENA
--	call LookForCardIDInPlayArea_Bank8
-+	call .CheckPlayerArenaCard
-	jr c, .set_carry
-	ld a, GASTLY_LV17
--	ld b, PLAY_AREA_ARENA
--	call LookForCardIDInPlayArea_Bank8
-+	call .CheckPlayerArenaCard
-	jr c, .set_carry
-	ld a, HAUNTER_LV22
--	ld b, PLAY_AREA_ARENA
--	call LookForCardIDInPlayArea_Bank8
-+	call .CheckPlayerArenaCard
-	jr c, .set_carry
-+	jr .paralyzed
-+
-+; returns carry if player's Arena card
-+; is card in register a
-+.CheckPlayerArenaCard:
-+	call SwapTurn
-+	ld b, PLAY_AREA_ARENA
-+	call LookForCardIDInPlayArea_Bank8
-+	jp SwapTurn
-
--	; otherwise fallthrough
-.paralyzed
-	...
-```
-
 ### AI Full Heal has flawed logic for paralysis
 
 The AI does some incorrect checks when analysing whether to heal paralysis with a Full Heal in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm). Firstly it incorrectly calls `CheckIfCanDamageDefendingPokemon` to determine whether the Arena card can damage the defending card, but it will always return no carry (because it is paralyzed). Then it does some retreating checks, which don't make sense after determining that the card can damage. The intention was to use Full Heal in case it is able to damage, otherwise to use Full Heal if the Ai is planning on retreating it.
