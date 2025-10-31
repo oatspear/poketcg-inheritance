@@ -12,39 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### AI might use a Pkmn Power as an attack
-
-Under very specific conditions, the AI might attempt to use its Arena card's Pkmn Power as an attack. This is because when the AI plays Pluspower, it is hardcoding which attack to use when it finally decides to attack. This does not account for the case where afterwards, for example, the AI plays a Professor Oak and obtains an evolution of that card, and then evolves that card. If the new evolved Pokémon has Pkmn Power on the first "attack slot", and the AI hardcoded to use that attack, then it will be used. This specific combination can be seen when playing with John, since his deck contains Professor Oak, Pluspower, and Doduo and its evolution Dodrio (which has the Pkmn Power Retreat Aid).
-
-**Fix:** Edit `AIDecideEvolution` in [src/engine/duel/ai/hand_pokemon.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/hand_pokemon.asm):
-```diff
-AIDecideEvolution:
-	...
-; if AI score >= 133, go through with the evolution
-.check_score
-	ld a, [wAIScore]
-	cp 133
-	jr c, .done_bench_pokemon
-	ld a, [wTempAI]
-	ldh [hTempPlayAreaLocation_ffa1], a
-	ld a, [wTempAIPokemonCard]
-	ldh [hTemp_ffa0], a
-	ld a, OPPACTION_EVOLVE_PKMN
-	bank1call AIMakeDecision
-+
-+	; disregard PlusPower attack choice
-+	; in case the Arena card evolved
-+	ld a, [wTempAI]
-+	or a
-+	jr nz, .skip_reset_pluspower_atk
-+	ld hl, wPreviousAIFlags
-+	res 0, [hl] ; AI_FLAG_USED_PLUSPOWER
-+.skip_reset_pluspower_atk
-	pop bc
-	jr .done_hand_card
-	...
-```
-
 ### AI never uses Energy Trans in order to retreat Arena card
 
 There is a mistake in the AI retreat logic, in [src/engine/duel/ai/decks/general.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/decks/general.asm). HandleAIEnergyTrans for retreating doesn't make sense being at the end, since at this point Switch Trainer card was already used to retreat the Pokémon. What the routine will do is just transfer Energy cards to the Arena Pokémon for the purpose of retreating, and then not actually retreat, resulting in unusual behaviour. This would only work placed right after the AI checks whether they have Switch card in hand to use and doesn't have one (and probably that was the original intention).
