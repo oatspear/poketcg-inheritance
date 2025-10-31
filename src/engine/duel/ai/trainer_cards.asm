@@ -3833,14 +3833,22 @@ AIDecide_FullHeal:
 	jr c, .no_carry
 
 .no_scoop_up_prz
-; return no carry if Arena card
-; cannot damage the defending Pokémon
+; return carry if Arena card
+; can damage the defending Pokémon
 
-; this is a bug, since CheckIfCanDamageDefendingPokemon
-; also takes into account whether card is paralyzed
+; temporarily remove status effect for damage checking
+	ld a, DUELVARS_ARENA_CARD_STATUS
+	call GetTurnDuelistVariable
+	ld b, [hl]
+	ld [hl], NO_STATUS
+	push hl
+	push bc
 	xor a ; PLAY_AREA_ARENA
 	farcall CheckIfCanDamageDefendingPokemon
-	jr nc, .no_carry
+	pop bc
+	pop hl
+	ld [hl], b
+	jr c, .set_carry
 
 ; if it can play an energy card to retreat, set carry.
 	ld a, [wAIPlayEnergyCardForRetreat]

@@ -12,49 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### AI Full Heal has flawed logic for paralysis
-
-The AI does some incorrect checks when analysing whether to heal paralysis with a Full Heal in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm). Firstly it incorrectly calls `CheckIfCanDamageDefendingPokemon` to determine whether the Arena card can damage the defending card, but it will always return no carry (because it is paralyzed). Then it does some retreating checks, which don't make sense after determining that the card can damage. The intention was to use Full Heal in case it is able to damage, otherwise to use Full Heal if the Ai is planning on retreating it.
-
-**Fix:** One way to fix would be to temporarily set the status of the card to NO_STATUS to perform these checks. Edit `AIDecide_FullHeal` in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm):
-```diff
-AIDecide_FullHeal:
-	...
-.no_scoop_up_prz
--; return no carry if Arena card
--; cannot damage the defending Pokémon
-+; return carry if Arena card
-+; can damage the defending Pokémon
-
--; this is a bug, since CheckIfCanDamageDefendingPokemon
--; also takes into account whether card is paralyzed
-+; temporarily remove status effect for damage checking
-+	ld a, DUELVARS_ARENA_CARD_STATUS
-+	call GetTurnDuelistVariable
-+	ld b, [hl]
-+	ld [hl], NO_STATUS
-+	push hl
-+	push bc
-	xor a ; PLAY_AREA_ARENA
-	farcall CheckIfCanDamageDefendingPokemon
-+	pop bc
-+	pop hl
-+	ld [hl], b
--	jr nc, .no_carry
-+	jr c, .set_carry
-
-; if it can play an energy card to retreat, set carry.
-	ld a, [wAIPlayEnergyCardForRetreat]
-	or a
-	jr nz, .set_carry
-
-; if not, check whether it's a card it would rather retreat,
-; and if it isn't, set carry.
-	farcall AIDecideWhetherToRetreat
-	jr nc, .set_carry
-	...
-```
-
 ### AI might use a Pkmn Power as an attack
 
 Under very specific conditions, the AI might attempt to use its Arena card's Pkmn Power as an attack. This is because when the AI plays Pluspower, it is hardcoding which attack to use when it finally decides to attack. This does not account for the case where afterwards, for example, the AI plays a Professor Oak and obtains an evolution of that card, and then evolves that card. If the new evolved Pokémon has Pkmn Power on the first "attack slot", and the AI hardcoded to use that attack, then it will be used. This specific combination can be seen when playing with John, since his deck contains Professor Oak, Pluspower, and Doduo and its evolution Dodrio (which has the Pkmn Power Retreat Aid).
