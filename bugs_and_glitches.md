@@ -12,46 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### AI does not use Shift properly
-
-The AI misuses the Shift Pkmn Power. It reads garbage data if there is a Clefairy Doll or Mysterious Fossil in play and also does not account for already changed types (including its own Shift effect).
-
-**Fix:** Edit `HandleAIShift` in [src/engine/duel/ai/pkmn_powers.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/pkmn_powers.asm):
-```diff
-HandleAIShift:
-	...
-.CheckWhetherTurnDuelistHasColor
-	ld a, [wAIDefendingPokemonWeakness]
-	ld b, a
-	ld a, DUELVARS_ARENA_CARD
-	call GetTurnDuelistVariable
-+	ld c, PLAY_AREA_ARENA
-.loop_play_area
-	ld a, [hli]
-	cp $ff
-	jr z, .false
-	push bc
--	call GetCardIDFromDeckIndex
--	call GetCardType ; bug, this could be a Trainer card
-+	ld a, c
-+	call GetPlayAreaCardColor
-	call TranslateColorToWR
-	pop bc
-	and b
--	jr z, .loop_play_area
-+	jr nz, .true
-+	inc c
-+	jr .loop_play_area
--; true
-+.true
-	scf
-	ret
-.false
-	or a
-	ret
-	...
-```
-
 ### AI does not use Cowardice properly
 
 The AI does not respect the rule in Cowardice which states it cannot be used on the same turn as when Tentacool was played.

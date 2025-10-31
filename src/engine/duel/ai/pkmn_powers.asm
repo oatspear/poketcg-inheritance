@@ -667,18 +667,21 @@ HandleAIShift:
 	ld b, a
 	ld a, DUELVARS_ARENA_CARD
 	call GetTurnDuelistVariable
+	ld c, PLAY_AREA_ARENA
 .loop_play_area
 	ld a, [hli]
 	cp $ff
 	jr z, .false
 	push bc
-	call GetCardIDFromDeckIndex
-	call GetCardType ; bug, this could be a Trainer card
+	ld a, c
+	call GetPlayAreaCardColor
 	call TranslateColorToWR
 	pop bc
 	and b
-	jr z, .loop_play_area
-; true
+	jr nz, .true
+	inc c
+	jr .loop_play_area
+.true
 	scf
 	ret
 .false
