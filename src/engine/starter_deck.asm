@@ -64,6 +64,18 @@ _AddStarterDeck:
 	pop hl
 	dec c
 	jr nz, .loop_extra_cards
+
+; add a few extra energies
+	ld c, PSYCHIC_ENERGY
+.loop_extra_energies
+	ld a, c
+	ld l, a
+	res CARD_NOT_OWNED_F, [hl]
+	ld a, [hl]
+	add 16
+	ld [hl], a
+	dec c
+	jr nz, .loop_extra_energies
 	jp DisableSRAM
 
 .StarterCardIDs
