@@ -40,42 +40,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### AI wrongfully adds score twice for attaching energy to Arena card
-
-When the AI is scoring each Play Area Pokémon card to attach an Energy card, it first checks whether it's the Arena card and, if so, checks whether the attack can KO the Defending Pokémon. If it's true, then 20 is added to the score. Then it does the same Arena card check to increase the score further. The intention is probably to score the card with 20 if it can KO the opponent regardless of Play Area position, and additionally if it's the Arena card it should score 10 more points.
-
-**Fix:** Edit `DetermineAIScoreOfAttackEnergyRequirement` in [src/engine/duel/ai/energy.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/energy.asm):
-```diff
-DetermineAIScoreOfAttackEnergyRequirement:
-	...
--; if the attack KOs player and this is the active card, add to AI score.
-+; if the attack KOs player add to AI score.
--	ldh a, [hTempPlayAreaLocation_ff9d]
--	or a
--	jr nz, .check_evolution
-	ld a, [wSelectedAttack]
-	call EstimateDamage_VersusDefendingCard
-	ld a, DUELVARS_ARENA_CARD_HP
-	call GetNonTurnDuelistVariable
-	ld hl, wDamage
-	sub [hl]
-	jr z, .atk_kos_defending
-	jr nc, .check_evolution
-.atk_kos_defending
-	ld a, 20
-	call AIEncourage
-
--; this is possibly a bug.
--; this is an identical check as above to test whether this card is active.
-+; add 10 more in case it's the Arena card
-	ldh a, [hTempPlayAreaLocation_ff9d]
-	or a
-	jr nz, .check_evolution
-	ld a, 10
-	call AIEncourage
-	...
-```
-
 ### Cards in AI decks that are not supposed to be placed as Prize cards are ignored
 
 Each deck AI lists some card IDs that are not supposed to be placed as Prize cards in the beginning of the duel. If the deck configuration after the initial shuffling results in any of these cards being placed as Prize cards, the game is supposed to reshuffle the deck. An example of such a list, for the Go GO Rain Dance deck, is:
