@@ -415,14 +415,15 @@ Script_EnterLabFirstTime:
 	script_nop
 	set_event EVENT_MASON_LAB_STATE, MASON_LAB_IN_PRACTICE_DUEL
 	close_advanced_text_box
-	set_next_npc_and_script NPC_SAM, .ows_d827
+	set_next_npc_and_script NPC_SAM, Script_BeatSam  ; .ows_d827
 	end_script
 	ret
 
-.ows_d827
-	start_script
-	start_duel PRIZES_2, SAMS_PRACTICE_DECK_ID, MUSIC_DUEL_THEME_1
-	quit_script_fully
+; tutorial
+;.ows_d827
+;	start_script
+;	start_duel PRIZES_2, SAMS_PRACTICE_DECK_ID, MUSIC_DUEL_THEME_1
+;	quit_script_fully
 
 .ows_d82d
 	close_advanced_text_box
