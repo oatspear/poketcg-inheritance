@@ -12,35 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### Chris never uses Revive on Kangaskhan
-
-Because of an error in the AI logic, Chris never considers using Revive on a Kangaskhan card in the Discard Pile, even though it is listed as one of the cards for the AI to check. This works fine for Hitmonchan and Hitmonlee, but in case it's a Tauros card, the routine will fallthrough into the Kangaskhan check and then will fallthrough into the set carry branch (since it fails this check). In case it's a Kangaskhan card, the check will fail in the Tauros check and jump back into the loop. So the Tauros check works by accident, while Kangaskhan will never be correctly checked because of this.
-
-**Fix:** Edit `AIDecide_Revive` in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm):
-```diff
-AIDecide_Revive:
-	...
-; look in Discard Pile for specific cards.
-	ld hl, wDuelTempList
-.loop_discard_pile
-	ld a, [hli]
-	cp $ff
-	jr z, .no_carry
-	ld b, a
-	call LoadCardDataToBuffer1_FromDeckIndex
-	cp HITMONCHAN
-	jr z, .set_carry
-	cp HITMONLEE
-	jr z, .set_carry
-	cp TAUROS
--	jr nz, .loop_discard_pile ; bug, these two lines should be swapped
-+	jr z, .set_carry
-	cp KANGASKHAN
--	jr z, .set_carry ; bug, these two lines should be swapped
-+	jr nz, .loop_discard_pile
-	...
-```
-
 ### AI Pokémon Trader may result in unintended effects
 
 A missing line in AI logic might result in strange behavior when executing the effect of Pokémon Trader for Power Generator deck. Since the last check falls through regardless of result, register a might hold an invalid deck index, which might lead to incorrect (and hilarious) results like Brandon trading a Pikachu with a Grass Energy from the deck. However, since it's deep in a tower of conditionals, reaching here is extremely unlikely.
