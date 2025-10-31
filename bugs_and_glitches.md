@@ -12,29 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### Rick never plays Energy Search
-
-The AI's decision to play Energy Search has two special cases: one for the Heated Battle deck and the other for the Wonders of Science deck. The former calls a subroutine to check only for Fire and Lightning energy cards in the deck, and the latter only checks for... Fire and Lightning energy cards. In a deck filled only with Grass and Psychic types. Needless is to say, poor Rick never finds any of those energy cards in the deck, so the Energy Search card is left forever unplayed. There's an unreferenced subroutine that looks for Grass energy that is supposed to be used instead.
-
-**Fix:** Edit `AIDecide_EnergySearch` in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm):
-```diff
-AIDecide_EnergySearch:
-	...
--; this subroutine has a bug.
--; it was supposed to use the .CheckUsefulGrassEnergy subroutine
--; but uses .CheckUsefulFireOrLightningEnergy instead.
-.wonders_of_science
-	ld a, CARD_LOCATION_DECK
-	call FindBasicEnergyCardsInLocation
-	jr c, .no_carry
--	call .CheckUsefulFireOrLightningEnergy
-+	call .CheckUsefulGrassEnergy
-	jr c, .no_carry
-	scf
-	ret
-	...
-```
-
 ### Rick uses wrong Pokédex AI subroutine
 
 Seems Rick can't catch a break. When deciding which cards to prioritize in the Pokédex card effect, the AI checks if it's playing the Wonders of Science deck, then completely disregards the result and jumps unconditionally. Thus, Rick uses the generic algorithm for sorting the deck cards.
