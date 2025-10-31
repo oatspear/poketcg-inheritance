@@ -40,60 +40,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### Cards in AI decks that are not supposed to be placed as Prize cards are ignored
-
-Each deck AI lists some card IDs that are not supposed to be placed as Prize cards in the beginning of the duel. If the deck configuration after the initial shuffling results in any of these cards being placed as Prize cards, the game is supposed to reshuffle the deck. An example of such a list, for the Go GO Rain Dance deck, is:
-```
-.list_prize 
-	db GAMBLER
-	db ENERGY_RETRIEVAL
-	db SUPER_ENERGY_RETRIEVAL
-	db BLASTOISE
-	db $00
-```
-
-However, the routine to iterate these lists and look for these cards is buggy, as it will always return no carry because when checking terminating byte in wAICardListAvoidPrize ($00), it wrongfully uses 'cp a' instead of 'or a'. This results in the game ignoring it completely. 
-
-**Fix:** Edit `SetUpBossStartingHandAndDeck` in [src/engine/duel/ai/boss_deck_set_up.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/boss_deck_set_up.asm):
-```diff
-SetUpBossStartingHandAndDeck:
-	...
--; expectation: return carry if card ID corresponding
-+; return carry if card ID corresponding
-; to the input deck index is listed in wAICardListAvoidPrize;
--; reality: always returns no carry
-; input:
-;	- a = deck index of card to check
-.CheckIfIDIsInList
-	ld b, a
-	ld a, [wAICardListAvoidPrize + 1]
-	or a
-	ret z ; null
-	push hl
-	ld h, a
-	ld a, [wAICardListAvoidPrize]
-	ld l, a
-
-	ld a, b
-	call GetCardIDFromDeckIndex
-.loop_id_list
-	ld a, [hli]
--	cp a ; bug, should be 'or a'
-+	or a
-	jr z, .false
-	cp e
-	jr nz, .loop_id_list
-
-; true
-	pop hl
-	scf
-	ret
-.false
-	pop hl
-	or a
-	ret
-```
-
 ### AI score modifiers for retreating are never used
 
 Each deck AI lists some Pokémon card IDs that have an associated score for retreating. That way, the game can fine-tune the likelihood that the AI duelist will retreat to a given Pokémon from the bench. For example, the Legendary Dragonite deck has the following list of retreat score modifiers:
