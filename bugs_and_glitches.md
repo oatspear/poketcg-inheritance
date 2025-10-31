@@ -10,60 +10,7 @@ Fixes are written in the `diff` format.
 +add green + lines
 ```
 
-## Contents
-- [Game engine](#game-engine)
-  - [AI wrongfully adds score twice for attaching energy to Arena card](#ai-wrongfully-adds-score-twice-for-attaching-energy-to-arena-card)
-  - [Cards in AI decks that are not supposed to be placed as Prize cards are ignored](#cards-in-ai-decks-that-are-not-supposed-to-be-placed-as-prize-cards-are-ignored)
-  - [AI score modifiers for retreating are never used](#ai-score-modifiers-for-retreating-are-never-used)
-  - [AI handles Basic Pokémon cards in hand wrong when scoring Professor Oak use](#ai-handles-basic-pokémon-cards-in-hand-wrong-when-scoring-professor-oak-use)
-  - [Rick never plays Energy Search](#rick-never-plays-energy-search)
-  - [Rick uses wrong Pokédex AI subroutine](#rick-uses-wrong-pokédex-ai-subroutine)
-  - [Chris never uses Revive on Kangaskhan](#chris-never-uses-revive-on-kangaskhan)
-  - [AI Pokémon Trader may result in unintended effects](#ai-pokémon-trader-may-result-in-unintended-effects)
-  - [AI Full Heal has flawed logic for sleep](#ai-full-heal-has-flawed-logic-for-sleep)
-  - [AI Full Heal has flawed logic for paralysis](#ai-full-heal-has-flawed-logic-for-paralysis)
-  - [AI might use a Pkmn Power as an attack](#ai-might-use-a-pkmn-power-as-an-attack)
-  - [AI never uses Energy Trans in order to retreat Arena card](#ai-never-uses-energy-trans-in-order-to-retreat-arena-card)
-  - [Sam's practice deck does wrong card ID check](#sams-practice-deck-does-wrong-card-id-check)
-  - [AI does not use Shift properly](#ai-does-not-use-shift-properly)
-  - [AI does not use Cowardice properly](#ai-does-not-use-cowardice-properly)
-  - [Phantom Venusaur will never be obtained through Card Pop!](#phantom-venusaur-will-never-be-obtained-through-card-pop)
-- [Graphics](#graphics)
-  - [Water Club master room uses the wrong void color](#water-club-master-room-uses-the-wrong-void-color)
-  - [Club entrances use incorrect medal emblem tiling](#club-entrances-use-incorrect-medal-emblem-tiling)
-  - [Green NPCs have incorrect frame data](#green-npcs-have-incorrect-frame-data)
-  - [Big Lightning animation has incorrect frame data](#big-lightning-animation-has-incorrect-frame-data)
-  - [Dive Bomb animation has incorrect frame data](#dive-bomb-animation-has-incorrect-frame-data)
-- [Text](#text)
-  - [Both Ninetales cards misspell its name](#both-ninetales-cards-misspell-its-name)
-  - [Challenge host uses wrong name for the first rival](#challenge-host-uses-wrong-name-for-the-first-rival)
-
 ## Game engine
-
-### AI score modifiers for retreating are never used
-
-Each deck AI lists some Pokémon card IDs that have an associated score for retreating. That way, the game can fine-tune the likelihood that the AI duelist will retreat to a given Pokémon from the bench. For example, the Legendary Dragonite deck has the following list of retreat score modifiers:
-```
-.list_retreat
-	ai_retreat CHARMANDER, -1
-	ai_retreat MAGIKARP,   -5
-	db $00
-```
-
-However, the game never actually stores the pointer to these lists (a notable exception being the Legendary Moltres deck), so the AI cannot access these score modifiers.
-
-**Fix:** Edit all applicable decks in `src/engine/duel/ai/decks/`, uncommenting the following line:
-```diff
-.store_list_pointers
-	store_list_pointer wAICardListAvoidPrize, .list_prize
-	store_list_pointer wAICardListArenaPriority, .list_arena
-	store_list_pointer wAICardListBenchPriority, .list_bench
-	store_list_pointer wAICardListPlayFromHandPriority, .list_bench
--	; missing store_list_pointer wAICardListRetreatBonus, .list_retreat
-+	store_list_pointer wAICardListRetreatBonus, .list_retreat
-	store_list_pointer wAICardListEnergyBonus, .list_energy
-	ret
-```
 
 ### AI handles Basic Pokémon cards in hand wrong when scoring Professor Oak use
 
