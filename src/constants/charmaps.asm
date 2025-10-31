@@ -418,13 +418,10 @@ DEF FW_SPACE EQU $70
 
 MACRO txsymbol
 	const SYM_\1
-	charmap "\1>", const_value - 1
+	charmap "<\1>", TX_SYMBOL, const_value - 1
 ENDM
 
 ; TX_SYMBOL
-; TODO: If user-defined functions ever become a thing a symbol(*) syntax
-;       would probably be preferred over SYM_*
-	charmap "<", TX_SYMBOL
 	const_def
 	txsymbol SPACE      ; $00
 	txsymbol FIRE       ; $01
