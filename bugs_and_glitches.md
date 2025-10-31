@@ -12,34 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### Rick uses wrong Pokédex AI subroutine
-
-Seems Rick can't catch a break. When deciding which cards to prioritize in the Pokédex card effect, the AI checks if it's playing the Wonders of Science deck, then completely disregards the result and jumps unconditionally. Thus, Rick uses the generic algorithm for sorting the deck cards.
-
-**Fix:** Edit `AIDecide_Pokedex` in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm):
-```diff
-AIDecide_Pokedex:
-	...
-.pick_cards
--; the following comparison is disregarded
--; the Wonders of Science deck was probably intended
--; to use PickPokedexCards_Unreferenced instead
-	ld a, [wOpponentDeckID]
-	cp WONDERS_OF_SCIENCE_DECK_ID
--	jp PickPokedexCards ; bug, should be jp nz
-+	jp nz, PickPokedexCards
-+	; fallthrough
-
-; picks order of the cards in deck from the effects of Pokedex.
-; prioritizes Pokemon cards, then Trainer cards, then energy cards.
-; stores the resulting order in wce1a.
--PickPokedexCards_Unreferenced:
--; unreferenced
-	xor a
-	ld [wAIPokedexCounter], a ; reset counter
-	...
-```
-
 ### Chris never uses Revive on Kangaskhan
 
 Because of an error in the AI logic, Chris never considers using Revive on a Kangaskhan card in the Discard Pile, even though it is listed as one of the cards for the AI to check. This works fine for Hitmonchan and Hitmonlee, but in case it's a Tauros card, the routine will fallthrough into the Kangaskhan check and then will fallthrough into the set carry branch (since it fails this check). In case it's a Kangaskhan card, the check will fail in the Tauros check and jump back into the loop. So the Tauros check works by accident, while Kangaskhan will never be correctly checked because of this.
