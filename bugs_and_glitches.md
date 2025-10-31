@@ -12,58 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### AI never uses Energy Trans in order to retreat Arena card
-
-There is a mistake in the AI retreat logic, in [src/engine/duel/ai/decks/general.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/decks/general.asm). HandleAIEnergyTrans for retreating doesn't make sense being at the end, since at this point Switch Trainer card was already used to retreat the Pokémon. What the routine will do is just transfer Energy cards to the Arena Pokémon for the purpose of retreating, and then not actually retreat, resulting in unusual behaviour. This would only work placed right after the AI checks whether they have Switch card in hand to use and doesn't have one (and probably that was the original intention).
-```
-; handles AI retreating logic
-AIProcessRetreat:
-	...
-.used_switch
-; if AI used switch, unset its AI flag
-	ld a, [wPreviousAIFlags]
-	and ~AI_FLAG_USED_SWITCH ; clear Switch flag
-	ld [wPreviousAIFlags], a
-
-	ld a, AI_ENERGY_TRANS_RETREAT
-	farcall HandleAIEnergyTrans
-	ret
-```
-
-**Fix:** TODO
-
-### Sam's practice deck does wrong card ID check
-
-There is a mistake in the AI logic for deciding which Pokémon for Sam to switch to in [src/engine/duel/ai/decks/sams_practice.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/decks/sams_practice.asm). It attempts to compare a card ID with a deck index. The intention was to change the card to switch to depending on whether the first Machop was KO'd at this point in the Duel or not. Because of the buggy comparison, this will always skip the 'inc a' instruction and switch to PLAY_AREA_BENCH_1. In a normal Practice Duel following Dr. Mason's instructions, this will always lead to the AI correctly switching Raticate with Machop, but in case of a "Free" Duel where the first Machop is not KO'd, the intention was to switch to PLAY_AREA_BENCH_2 instead.
-```
-	ld a, DUELVARS_ARENA_CARD
-	call GetTurnDuelistVariable
-	cp MACHOP ; wrong
-	ld a, PLAY_AREA_BENCH_1
-	jr nz, .retreat
-	inc a ; PLAY_AREA_BENCH_2
-```
-
-**Fix:** Edit `AIPerformScriptedTurn` in [src/engine/duel/ai/decks/sams_practice.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/decks/sams_practice.asm):
-```diff
-AIPerformScriptedTurn:
-	...
-	ld a, DUELVARS_ARENA_CARD
-	call GetTurnDuelistVariable
-+	call GetCardIDFromDeckIndex
-+	ld a, e
--	cp MACHOP ; wrong
-+	cp MACHOP
-	ld a, PLAY_AREA_BENCH_1
-	jr nz, .retreat
-	inc a ; PLAY_AREA_BENCH_2
-
-.retreat
-	call AITryToRetreat
-	ret
-	...
-```
-
 ### AI does not use Shift properly
 
 The AI misuses the Shift Pkmn Power. It reads garbage data if there is a Clefairy Doll or Mysterious Fossil in play and also does not account for already changed types (including its own Shift effect).
