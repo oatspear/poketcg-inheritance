@@ -12,35 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Graphics
 
-### Big Lightning animation has incorrect frame data
-
-One of the bolts from the "big lightning" duel animation has its topmost row of tiles accidentally shifted one tile to the left.
-
-**Fix:** Edit `AnimFrameTable29` in [data/duel/animations/anims1.asm](https://github.com/pret/poketcg/blob/master/src/data/duel/animations/anims1.asm):
-```diff
-.data_ab5fd
-	db 28 ; size
--	db -72, -8, 0, (1 << OAM_X_FLIP)
-+	db -72, 0, 0, (1 << OAM_X_FLIP)
-	db -16, 32, 27, $0
-	...
-	db -56, 10, 42, $0
-```
-
-The base of the lightning being cut-off is addressed below, though that specific fix will cause a byte overflow, forcing one to rearrange `anim1.asm`.
-
-```diff
-.data_ab5fd
--	db 28 ; size
--	db -72, -8, 0, (1 << OAM_X_FLIP)
-+	db 29 ; size
-+	db -72, 0, 0, (1 << OAM_X_FLIP)
-+	db -72, -8, 1, (1 << OAM_X_FLIP)
-	db -16, 32, 27, $0
-	...
-	db -56, 10, 42, $0
-```
-
 ### Dive Bomb animation has incorrect frame data
 
 The fire blasts from Dive Bomb's duel animation mistakenly reuse the same tile twice, causing one tile to go unused, and the animation itself to look less refined.

@@ -3156,7 +3156,7 @@ AnimFrameTable29::
 
 .data_ab5fd
 	db 28 ; size
-	db -72, -8, 0, (1 << OAM_X_FLIP)
+	db -72, 0, 0, (1 << OAM_X_FLIP)
 	db -16, 32, 27, $0
 	db -16, 40, 28, $0
 	db -8, 32, 29, $0
