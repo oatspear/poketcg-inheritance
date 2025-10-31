@@ -12,30 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### AI handles Basic Pokémon cards in hand wrong when scoring Professor Oak use
-
-When the AI is checking whether to play Professor Oak or not, it does a hand check to see if there are any Basic/Evolved Pokémon cards. One of these checks is supposed to add to the score if there are any Basic Pokémon in hand, but as it is written, it will never execute the score addition.
-
-**Fix:** Edit `AIDecide_ProfessorOak` in [src/engine/duel/ai/trainer_cards.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/trainer_cards.asm):
-```diff
-AIDecide_ProfessorOak:
-	...
-.check_hand
-	call CreateHandCardList
-	ld hl, wDuelTempList
-.loop_hand
-	ld a, [hli]
-	cp $ff
-	jr z, .check_evolution
-
-	call LoadCardDataToBuffer1_FromDeckIndex
-	ld a, [wLoadedCard1Type]
-	cp TYPE_ENERGY
--	jr c, .loop_hand ; bug, should be jr nc
-+	jr nc, .loop_hand
-	...
-```
-
 ### Rick never plays Energy Search
 
 The AI's decision to play Energy Search has two special cases: one for the Heated Battle deck and the other for the Wonders of Science deck. The former calls a subroutine to check only for Fire and Lightning energy cards in the deck, and the latter only checks for... Fire and Lightning energy cards. In a deck filled only with Grass and Psychic types. Needless is to say, poor Rick never finds any of those energy cards in the deck, so the Energy Search card is left forever unplayed. There's an unreferenced subroutine that looks for Grass energy that is supposed to be used instead.

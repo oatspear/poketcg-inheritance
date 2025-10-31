@@ -2387,7 +2387,7 @@ AIDecide_ProfessorOak:
 	call LoadCardDataToBuffer1_FromDeckIndex
 	ld a, [wLoadedCard1Type]
 	cp TYPE_ENERGY
-	jr c, .loop_hand ; bug, should be jr nc
+	jr nc, .loop_hand
 
 	ld a, [wLoadedCard1Stage]
 	or a
