@@ -994,6 +994,10 @@ HandleAICowardice:
 	ld a, c
 	ldh [hTemp_ffa0], a
 	ld e, a
+	add DUELVARS_ARENA_CARD_FLAGS
+	call GetTurnDuelistVariable
+	and CAN_EVOLVE_THIS_TURN
+	ret z ; return if was played this turn
 	call GetCardDamageAndMaxHP
 .asm_22678
 	or a

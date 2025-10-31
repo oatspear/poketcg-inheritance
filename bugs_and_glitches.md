@@ -12,26 +12,6 @@ Fixes are written in the `diff` format.
 
 ## Game engine
 
-### AI does not use Cowardice properly
-
-The AI does not respect the rule in Cowardice which states it cannot be used on the same turn as when Tentacool was played.
-
-**Fix:** Edit `HandleAICowardice` in [src/engine/duel/ai/pkmn_powers.asm](https://github.com/pret/poketcg/blob/master/src/engine/duel/ai/pkmn_powers.asm):
-```diff
-; handles AI logic for Cowardice
-HandleAICowardice:
-	...
-.CheckWhetherToUseCowardice
-	ld a, c
-	ldh [hTemp_ffa0], a
-	ld e, a
-+	add DUELVARS_ARENA_CARD_FLAGS
-+	call GetTurnDuelistVariable
-+	and CAN_EVOLVE_THIS_TURN
-+	ret z ; return if was played this turn
-	...
-```
-
 ### Phantom Venusaur will never be obtained through Card Pop!
 
 ([Video](https://youtu.be/vr8MZwW6gpI?si=qZuMBGRSrMyoGVJj&t=60))
