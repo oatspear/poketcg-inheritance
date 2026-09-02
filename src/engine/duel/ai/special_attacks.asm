@@ -167,29 +167,51 @@ HandleSpecialAIAttacks:
 	ret
 
 ; checks player's active card color, then
-; loops through own bench looking for a Pokémon
+; loops through both benches looking for Pokémon
 ; with that same color.
-; if none are found, returns score of $80 + 2.
 .ChainLightning:
 	call SwapTurn
 	call GetArenaCardColor
-	call SwapTurn
 	ld b, a
+	ld c, 1  ; counter for number of cards found (active counts as 1)
+; loop through player's bench
+	ld a, DUELVARS_BENCH
+	call GetTurnDuelistVariable
+.loop_chain_lightning_player_bench
+	ld a, [hli]
+	cp $ff
+	jr z, .chain_lightning_ai_bench
+	push bc
+	call GetCardIDFromDeckIndex
+	call GetCardType
+	pop bc
+	cp b
+	jr nz, .loop_chain_lightning_player_bench
+	inc c
+	jr .loop_chain_lightning_player_bench
+; loop through AI's bench
+.chain_lightning_ai_bench
+	call SwapTurn
 	ld a, DUELVARS_BENCH
 	call GetTurnDuelistVariable
 .loop_chain_lightning_bench
 	ld a, [hli]
 	cp $ff
-	jr z, .chain_lightning_success
+	jr z, .chain_lightning_tally
 	push bc
 	call GetCardIDFromDeckIndex
 	call GetCardType
 	pop bc
 	cp b
 	jr nz, .loop_chain_lightning_bench
-	jp .zero_score
-.chain_lightning_success
-	ld a, $82
+	dec c
+; if this is zero, there is no benefit to using the attack
+	jp z, .zero_score
+	jr .loop_chain_lightning_bench
+.chain_lightning_tally
+	ld a, $80
+	add c
+	add c
 	ret
 
 .DevolutionBeam:

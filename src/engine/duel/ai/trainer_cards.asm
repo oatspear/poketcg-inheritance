@@ -1938,13 +1938,15 @@ AIPlay_ProfessorOak:
 ; sets carry if AI determines a score of playing
 ; Professor Oak is over a certain threshold.
 AIDecide_ProfessorOak:
-; return if cards in deck <= 6
+; return if cards in deck <= 14
 	ld a, DUELVARS_NUMBER_OF_CARDS_NOT_IN_DECK
 	call GetTurnDuelistVariable
-	cp DECK_SIZE - 6
+	cp DECK_SIZE - 14
 	ret nc
 
 	ld a, [wOpponentDeckID]
+	cp LEGENDARY_ZAPDOS_DECK_ID
+	jp z, .HandleLegendaryZapdosDeck
 	cp LEGENDARY_ARTICUNO_DECK_ID
 	jp z, .HandleLegendaryArticunoDeck
 	cp EXCAVATION_DECK_ID
@@ -1952,13 +1954,7 @@ AIDecide_ProfessorOak:
 	cp WONDERS_OF_SCIENCE_DECK_ID
 	jp z, .HandleWondersOfScienceDeck
 
-; return if cards in deck <= 14
-.check_cards_deck
-	ld a, [hl]
-	cp DECK_SIZE - 14
-	ret nc
-
-; initialize score
+.init_score
 	ld a, $1e
 	ld [wce06], a
 
@@ -2138,6 +2134,21 @@ AIDecide_ProfessorOak:
 	scf
 	ret
 
+; handles Legendary Zapdos Deck AI logic
+.HandleLegendaryZapdosDeck
+	ld de, ZAPDOS_LV68
+	farcall LookForCardIDInHand
+	ret nc  ; found in hand, return no carry
+
+	ld de, SCOOP_UP
+	farcall LookForCardIDInHand
+	ret nc  ; found in hand, return no carry
+
+	ld a, DUELVARS_NUMBER_OF_CARDS_IN_HAND
+	call GetTurnDuelistVariable
+	cp 4
+	ret
+
 ; handles Legendary Articuno Deck AI logic.
 .HandleLegendaryArticunoDeck
 	ld a, DUELVARS_NUMBER_OF_POKEMON_IN_PLAY_AREA
@@ -2178,7 +2189,7 @@ AIDecide_ProfessorOak:
 .check_playable_cards
 	call CountOppEnergyCardsInHand
 	cp 4
-	jr nc, .no_carry_articuno
+	ret nc
 
 ; remove both Professor Oak cards from list
 ; before checking for playable cards
@@ -2200,8 +2211,7 @@ AIDecide_ProfessorOak:
 	farcall CheckIfCardCanBePlayed
 	pop hl
 	jr c, .loop_hand_articuno
-
-.no_carry_articuno
+; found a card that can be played
 	or a
 	ret
 
@@ -2239,7 +2249,7 @@ AIDecide_ProfessorOak:
 
 	ld a, DUELVARS_NUMBER_OF_CARDS_NOT_IN_DECK
 	call GetTurnDuelistVariable
-	jp .check_cards_deck
+	jp .init_score
 
 .found_grimer_or_muk
 	or a
@@ -3520,6 +3530,7 @@ AIDecide_FullHeal:
 	call LookForCardIDInPlayArea_Bank8
 	jp SwapTurn
 
+
 AIPlay_MrFuji:
 	ld a, [wAITrainerCardToPlay]
 	ldh [hTempCardIndex_ff9f], a
@@ -3541,6 +3552,14 @@ AIDecide_MrFuji:
 	cp 1
 	ret z
 
+	ld a, [wOpponentDeckID]
+	cp LEGENDARY_ZAPDOS_DECK_ID
+	jr z, .HandleLegendaryZapdos_MrFuji
+	cp LEGENDARY_ARTICUNO_DECK_ID
+	jr z, .HandleLegendaryArticuno_MrFuji
+
+.common_logic
+	ld a, [hl]
 	dec a
 	ld d, a
 	ld e, PLAY_AREA_BENCH_1
@@ -3589,6 +3608,65 @@ AIDecide_MrFuji:
 	scf
 	ret
 
+.HandleLegendaryArticuno_MrFuji
+; prioritize common logic to save damaged Pokémon
+	call .common_logic
+	ret c
+	ld de, ARTICUNO_LV37
+	jr .HandleLegendaryCards_MrFuji
+
+.HandleLegendaryZapdos_MrFuji
+; prioritize common logic to save damaged Pokémon
+	call .common_logic
+	ret c
+	ld de, ZAPDOS_LV68
+	; fallthrough
+
+.HandleLegendaryCards_MrFuji
+	ld b, PLAY_AREA_ARENA
+	call LookForCardIDInPlayArea_Bank8
+	ret nc  ; not found
+
+; found Legendary Pokémon in Play Area
+	ld e, a
+	call GetPlayAreaCardAttachedEnergies
+	ld a, e
+	or a  ; cp PLAY_AREA_ARENA
+	jr z, .active_spot_legendary
+
+; found in bench
+	ld a, [wTotalAttachedEnergies]
+	or a
+	ret nz  ; energized
+	ld a, e  ; location of the Pokémon
+	scf
+	ret
+
+.active_spot_legendary
+	ld a, [wTotalAttachedEnergies]
+	cp 3
+	ccf
+	ret nc  ; not fully energized
+
+; save any Pokémon in bench with less than 70 HP
+	ld b, PLAY_AREA_BENCH_1
+	ld a, DUELVARS_BENCH
+	call GetTurnDuelistVariable
+	ld d, h
+	ld e, DUELVARS_BENCH1_CARD_HP
+.loop_legendary_bench
+	ld a, [hli]
+	cp $ff
+	ret z  ; no Pokémon found
+	ld a, [de]
+	inc de
+	cp 71
+	ld a, b  ; location of Pokémon
+	ret c  ; found Legendary Pokémon in Bench
+	inc b
+	jr .loop_legendary_bench
+
+
 AIPlay_ScoopUp:
 	ld a, [wAITrainerCardToPlay]
 	ldh [hTempCardIndex_ff9f], a
@@ -3616,6 +3694,8 @@ AIDecide_ScoopUp:
 	jr z, .HandleLegendaryArticuno
 	cp LEGENDARY_RONALD_DECK_ID
 	jp z, .HandleLegendaryRonald
+	cp LEGENDARY_ZAPDOS_DECK_ID
+	jp z, .HandleLegendaryZapdos
 
 ; if can't KO defending Pokemon, check if defending Pokemon
 ; can KO this card. If so, then continue.
@@ -3690,12 +3770,6 @@ AIDecide_ScoopUp:
 ; or if Muk is in both Play Areas.
 ; will also use Scoop Up on Chansey
 .HandleLegendaryArticuno
-; if less than 3 Play Area Pokemon cards, skip.
-	ld a, DUELVARS_NUMBER_OF_POKEMON_IN_PLAY_AREA
-	call GetTurnDuelistVariable
-	cp 3
-	jr c, .no_carry
-
 ; look for ArticunoLv37 in bench
 	ld de, ARTICUNO_LV37
 	ld b, PLAY_AREA_BENCH_1
@@ -3723,7 +3797,7 @@ AIDecide_ScoopUp:
 
 .check_ko
 	farcall CheckIfDefendingPokemonCanKnockOut
-	jr nc, .no_carry
+	ret nc
 	jr .decide_switch
 
 .articuno_bench
@@ -3767,12 +3841,6 @@ AIDecide_ScoopUp:
 
 ; this deck will use Scoop Up on a benched ArticunoLv37, ZapdosLv68 or MoltresLv37.
 .HandleLegendaryRonald
-; if less than 3 Play Area Pokemon cards, skip.
-	ld a, DUELVARS_NUMBER_OF_POKEMON_IN_PLAY_AREA
-	call GetTurnDuelistVariable
-	cp 3
-	jp c, .no_carry
-
 ; skip if Muk is in play area
 	ld de, MUK
 	call CountPokemonWithActivePkmnPowerInBothPlayAreas  ; preserves bc
@@ -3791,6 +3859,51 @@ AIDecide_ScoopUp:
 	call LookForCardIDInPlayArea_Bank8
 	jr c, .check_attached_energy
 	jp .no_carry
+
+; this deck will use Scoop Up on a benched ZapdosLv68 or Chansey
+; it checks if Muk is in both Play Areas
+.HandleLegendaryZapdos
+; look for ZapdosLv68 in bench
+	ld de, ZAPDOS_LV68
+	ld b, PLAY_AREA_BENCH_1
+	call LookForCardIDInPlayArea_Bank8
+	jr c, .zapdos_bench
+
+; check Arena card
+	ld a, DUELVARS_ARENA_CARD
+	call GetTurnDuelistVariable
+	call GetCardIDFromDeckIndex
+	cp16 ZAPDOS_LV68
+	jr z, .zapdos_or_chansey
+	cp16 CHANSEY
+	jr z, .zapdos_or_chansey
+	or a  ; no carry
+	ret
+
+; here either ZapdosLv68 or Chansey is the Arena Card.
+.zapdos_or_chansey
+; if can't KO defending Pokemon, check if defending Pokemon
+; can KO this card. If so, then continue.
+; If not, return no carry.
+
+; if it can KO the defending Pokemon this turn, return no carry.
+	farcall CheckIfAnyAttackCouldKnockOutDefendingCard
+	jp nc, .check_ko
+	or a  ; no carry
+	ret
+
+.zapdos_bench
+; skip if Muk is in play area
+	ld de, MUK
+	call CountPokemonWithActivePkmnPowerInBothPlayAreas  ; preserves bc
+	ccf
+	ret nc
+
+; check attached energy cards.
+; if it has any, return no carry.
+	ld a, b
+	jr .check_attached_energy
+
 
 AIPlay_Maintenance:
 	ld a, [wCurrentAIFlags]
@@ -4299,13 +4412,14 @@ AIDecide_PokemonFlute:
 	call SwapTurn
 	call CreateDiscardPileCardList
 	call SwapTurn
-	jr c, .no_carry
+	ccf
+	ret nc
 
 ; if player's Play Area is already full, skip.
 	ld a, DUELVARS_NUMBER_OF_POKEMON_IN_PLAY_AREA
 	call GetNonTurnDuelistVariable
 	cp MAX_PLAY_AREA_POKEMON
-	jr nc, .no_carry
+	ret nc
 
 	ld a, $ff
 	ld [wce06], a
@@ -4348,14 +4462,12 @@ AIDecide_PokemonFlute:
 ; if lowest HP found >= 50, return no carry
 	ld a, [wce06]
 	cp 50
-	jr nc, .no_carry
+	ret nc
 ; otherwise output its deck index in a and set carry.
 	ld a, [wce08]
 	scf
 	ret
-.no_carry
-	or a
-	ret
+
 
 AIPlay_ClefairyDollOrMysteriousFossil:
 	ld a, [wAITrainerCardToPlay]
@@ -5052,6 +5164,8 @@ AIDecide_PokemonTrader:
 	ld a, [wOpponentDeckID]
 	cp LEGENDARY_MOLTRES_DECK_ID
 	jr z, AIDecide_PokemonTrader_LegendaryMoltres
+	cp LEGENDARY_ZAPDOS_DECK_ID
+	jr z, AIDecide_PokemonTrader_LegendaryZapdos
 	cp LEGENDARY_ARTICUNO_DECK_ID
 	jr z, AIDecide_PokemonTrader_LegendaryArticuno
 	cp LEGENDARY_DRAGONITE_DECK_ID
@@ -5078,6 +5192,22 @@ AIDecide_PokemonTrader_LegendaryMoltres:
 ; card in hand different from MoltresLv35.
 	ld de, MOLTRES_LV37
 	ld bc, MOLTRES_LV35
+	call LookForCardIDToTradeWithDifferentHandCard
+	jr nc, .no_carry
+; success
+	ld [wce1a], a
+	ld a, e
+	scf
+	ret
+.no_carry
+	or a
+	ret
+
+AIDecide_PokemonTrader_LegendaryZapdos:
+; look for ZapdosLv68 card in deck to trade with a
+; card in hand different from ZapdosLv68.
+	ld de, ZAPDOS_LV68
+	ld bc, ZAPDOS_LV68
 	call LookForCardIDToTradeWithDifferentHandCard
 	jr nc, .no_carry
 ; success
