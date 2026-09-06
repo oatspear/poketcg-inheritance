@@ -627,20 +627,24 @@ LegendaryDragoniteDeck:
 
 FirstStrikeDeck:
 	deck_list_start
-	card_item FIGHTING_ENERGY, 25
+	card_item FIGHTING_ENERGY, 12
 	card_item MACHOP,           4
-	card_item MACHOKE,          3
-	card_item MACHAMP,          2
-	card_item HITMONCHAN,       2
-	card_item HITMONLEE,        4
-	card_item MANKEY,           4
-	card_item PRIMEAPE,         1
-	card_item POTION,           2
+	card_item MACHOKE,          2
+	card_item MACHAMP,          3
+	card_item HITMONCHAN,       3
+	card_item JIGGLYPUFF_LV14,  3
+	card_item WIGGLYTUFF,       2
+	card_item PROFESSOR_OAK,    1
+	card_item POKEMON_BREEDER,  2
+	card_item SUPER_POTION,     2
 	card_item DEFENDER,         2
-	card_item PLUSPOWER,        2
-	card_item SWITCH,           2
-	card_item GUST_OF_WIND,     3
+	card_item PLUSPOWER,        4
+	card_item SWITCH,           4
+	card_item GUST_OF_WIND,     4
 	card_item BILL,             4
+	card_item ENERGY_REMOVAL,   4
+	card_item ENERGY_RETRIEVAL, 2
+	card_item FULL_HEAL,        2
 	deck_list_end
 	tx FirstStrikeDeckName
 
