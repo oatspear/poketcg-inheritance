@@ -1949,6 +1949,8 @@ AIDecide_ProfessorOak:
 	jp z, .HandleLegendaryZapdosDeck
 	cp LEGENDARY_ARTICUNO_DECK_ID
 	jp z, .HandleLegendaryArticunoDeck
+	cp LEGENDARY_RONALD_DECK_ID
+	jp z, AIDecide_ProfessorOak_LegendaryRonaldDeck
 	cp EXCAVATION_DECK_ID
 	jp z, .HandleExcavationDeck
 	cp WONDERS_OF_SCIENCE_DECK_ID
@@ -2254,6 +2256,36 @@ AIDecide_ProfessorOak:
 .found_grimer_or_muk
 	or a
 	ret
+
+
+AIDecide_ProfessorOak_LegendaryRonaldDeck:
+	ld de, MUK
+	call CountPokemonWithActivePkmnPowerInBothPlayAreas
+	jr c, .mewtwo
+	ld de, MUK
+	call LookForCardIDInHandList_Bank8
+	jr nc, .mewtwo
+	ld de, GRIMER
+	call LookForCardIDInHandAndPlayArea
+	ccf
+	ret nc  ; hold Muk to play on Grimer
+
+.mewtwo
+	ld de, MEWTWO_LV60
+	ld b, PLAY_AREA_ARENA
+	call LookForCardIDInPlayArea_Bank8
+	jr c, .check_hand_size
+	ld de, MEWTWO_LV60
+	call LookForCardIDInHandList_Bank8
+	ccf
+	ret nc  ; hold Mewtwo to play later
+
+.check_hand_size
+	ld a, DUELVARS_NUMBER_OF_CARDS_IN_HAND
+	call GetTurnDuelistVariable
+	cp 4
+	ret
+
 
 AIPlay_EnergyRetrieval:
 	ld a, [wCurrentAIFlags]
@@ -5372,74 +5404,65 @@ AIDecide_PokemonTrader_LegendaryDragonite:
 	ret
 
 AIDecide_PokemonTrader_LegendaryRonald:
+; if has none of these cards in Hand or Play Area, proceed
+	ld de, MEWTWO_LV60
+	call LookForCardIDInHandAndPlayArea
+	jr c, .lickitung
+; look for the card in the deck
+	; ld de, MEWTWO_LV60
+	ld a, CARD_LOCATION_DECK
+	call LookForCardIDInLocation_Bank8
+	jr c, .choose_hand
+
+.lickitung
+	ld de, LICKITUNG
+	call LookForCardIDInHandAndPlayArea
+	jr c, .muk
+	; ld de, LICKITUNG
+	ld a, CARD_LOCATION_DECK
+	call LookForCardIDInLocation_Bank8
+	jr c, .choose_hand
+
 ; for each of the following cards,
 ; first run a check if there's a pre-evolution in
 ; Play Area or in the hand. If there is, choose it as target.
 ; otherwise, check if the evolution card is in
 ; hand and if so, choose it as target instead.
-	ld bc, EEVEE
-	ld de, FLAREON_LV22
+.muk
+	ld de, MUK
+	ld bc, GRIMER
 	call LookForCardIDInDeck_GivenCardIDInHandAndPlayArea
 	jr c, .choose_hand
-	ld bc, EEVEE
-	ld de, VAPOREON_LV29
-	call LookForCardIDInDeck_GivenCardIDInHandAndPlayArea
-	jr c, .choose_hand
-	ld bc, EEVEE
-	ld de, JOLTEON_LV24
-	call LookForCardIDInDeck_GivenCardIDInHandAndPlayArea
-	jr c, .choose_hand
-	ld de, EEVEE
-	ld bc, FLAREON_LV22
+	ld de, GRIMER
+	ld bc, MUK
 	call LookForCardIDInDeck_GivenCardIDInHand
-	jr c, .choose_hand
-	ld de, EEVEE
-	ld bc, VAPOREON_LV29
-	call LookForCardIDInDeck_GivenCardIDInHand
-	jr c, .choose_hand
-	ld de, EEVEE
-	ld bc, JOLTEON_LV24
-	call LookForCardIDInDeck_GivenCardIDInHand
-	jr c, .choose_hand
-	ld bc, DRATINI
-	ld de, DRAGONAIR
-	call LookForCardIDInDeck_GivenCardIDInHandAndPlayArea
-	jr c, .choose_hand
-	ld bc, DRAGONAIR
-	ld de, DRAGONITE_LV41
-	call LookForCardIDInDeck_GivenCardIDInHandAndPlayArea
-	jr c, .choose_hand
-	ld de, DRATINI
-	ld bc, DRAGONAIR
-	call LookForCardIDInDeck_GivenCardIDInHand
-	jr c, .choose_hand
-	ld de, DRAGONAIR
-	ld bc, DRAGONITE_LV41
-	call LookForCardIDInDeck_GivenCardIDInHand
-	jr c, .choose_hand
-	jr .no_carry
+	ret nc
+	; fallthrough
 
 ; card was found as target in deck,
 ; look for card in hand to trade with
 .choose_hand
 	ld [wce1a], a
-	ld de, ZAPDOS_LV68
+	ld de, SCYTHER
 	call LookForCardIDInHandList_Bank8
-	jr c, .set_carry
-	ld de, ARTICUNO_LV37
-	call LookForCardIDInHandList_Bank8
-	jr c, .set_carry
-	ld de, MOLTRES_LV37
-	call LookForCardIDInHandList_Bank8
-	jr c, .set_carry
-	; none found
+	ret c
 
-.no_carry
-	or a
-	ret
-.set_carry
-	scf
-	ret
+	ld de, LICKITUNG
+	call LookForCardIDInHandList_Bank8
+	ret c
+
+	ld de, GRIMER
+	call LookForCardIDInHandList_Bank8
+	ret c
+
+	ld de, MUK
+	call LookForCardIDInHandList_Bank8
+	ret c
+
+	ld de, MEWTWO_LV60
+	call LookForCardIDInHandList_Bank8
+	ret  ; carry if found
+
 
 AIDecide_PokemonTrader_BlisteringPokemon:
 ; for each of the following cards,

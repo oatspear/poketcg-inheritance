@@ -806,8 +806,8 @@ ImRonaldDeck:
 	card_item CHARMANDER,        4
 	card_item CHARMELEON,        3
 	card_item CHARIZARD,         2
-	card_item GROWLITHE,         4
-	card_item ARCANINE_LV45,     3
+	card_item GROWLITHE,         3
+	card_item ARCANINE_LV45,     2
 	card_item SEEL,              3
 	card_item DEWGONG,           2
 	card_item LAPRAS,            2
@@ -816,10 +816,9 @@ ImRonaldDeck:
 	card_item ENERGY_RETRIEVAL,  3
 	card_item ENERGY_REMOVAL,    3
 	card_item ENERGY_SEARCH,     3
-	card_item SWITCH,            2
-	card_item PLUSPOWER,         2
-	card_item DEFENDER,          2
-	card_item GUST_OF_WIND,      2
+	card_item SWITCH,            3
+	card_item PLUSPOWER,         3
+	card_item GUST_OF_WIND,      3
 	deck_list_end
 	tx ImRonaldDeckName
 
@@ -872,23 +871,26 @@ InvincibleRonaldDeck:
 
 LegendaryRonaldDeck:
 	deck_list_start
-	card_item WATER_ENERGY,            14
-	card_item DOUBLE_COLORLESS_ENERGY,  4
-	card_item SCYTHER,                  4
-	card_item MAGIKARP,                 3
-	card_item GYARADOS,                 2
-	card_item DRATINI,                  4
-	card_item DRAGONAIR,                2
-	card_item DRAGONITE_LV41,           3
-	card_item PROFESSOR_OAK,            2
-	card_item BILL,                     4
-	card_item POKEMON_TRADER,           3
-	card_item POKEMON_BREEDER,          2
-	card_item ENERGY_RETRIEVAL,         2
-	card_item ENERGY_REMOVAL,           4
-	card_item GUST_OF_WIND,             3
-	card_item PLUSPOWER,                3
-	card_item GAMBLER,                  1
+	card_item GRASS_ENERGY,            6
+	card_item PSYCHIC_ENERGY,          6
+	card_item DOUBLE_COLORLESS_ENERGY, 2
+	card_item GRIMER,                  3
+	card_item MUK,                     2
+	card_item SCYTHER,                 3
+	card_item MEWTWO_LV60,             3
+	card_item LICKITUNG,               3
+	card_item PROFESSOR_OAK,           2
+	card_item BILL,                    4
+	card_item POKEMON_TRADER,          2
+	card_item ENERGY_RETRIEVAL,        2
+	card_item ENERGY_REMOVAL,          4
+	card_item SUPER_ENERGY_REMOVAL,    1
+	card_item ENERGY_SEARCH,           2
+	card_item GUST_OF_WIND,            4
+	card_item PLUSPOWER,               4
+	card_item SWITCH,                  4
+	card_item SUPER_POTION,            2
+	card_item GAMBLER,                 1
 	deck_list_end
 	tx LegendaryRonaldDeckName
 
