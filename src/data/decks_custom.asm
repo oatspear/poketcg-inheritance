@@ -650,23 +650,23 @@ FirstStrikeDeck:
 
 RockCrusherDeck:
 	deck_list_start
-	card_item FIGHTING_ENERGY,         24
-	card_item DOUBLE_COLORLESS_ENERGY,  2
-	card_item DIGLETT,                  4
-	card_item DUGTRIO,                  2
-	card_item GEODUDE,                  4
-	card_item GRAVELER,                 3
-	card_item GOLEM,                    2
-	card_item ONIX,                     3
+	card_item FIGHTING_ENERGY,         10
+	card_item DOUBLE_COLORLESS_ENERGY,  4
+	card_item CUBONE,                   4
+	card_item MAROWAK_LV26,             3
 	card_item RHYHORN,                  3
+	card_item RHYDON,                   2
+	card_item VOLTORB,                  3
+	card_item ELECTRODE_LV42,           2
 	card_item PROFESSOR_OAK,            2
-	card_item POKEMON_BREEDER,          1
-	card_item ENERGY_REMOVAL,           2
-	card_item SWITCH,                   2
-	card_item COMPUTER_SEARCH,          1
-	card_item DEFENDER,                 2
-	card_item SUPER_POTION,             1
-	card_item POTION,                   2
+	card_item BILL,                     4
+	card_item ENERGY_RETRIEVAL,         2
+	card_item ENERGY_REMOVAL,           4
+	card_item SWITCH,                   4
+	card_item DEFENDER,                 4
+	card_item PLUSPOWER,                4
+	card_item SUPER_POTION,             2
+	card_item GUST_OF_WIND,             3
 	deck_list_end
 	tx RockCrusherDeckName
 
